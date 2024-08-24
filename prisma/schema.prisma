@@ -13,3 +13,78 @@ datasource db {
   url = env("POSTGRES_PRISMA_URL") // uses connection pooling
   directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
 }
+
+enum RoleUser{
+  CUSTOMER
+  ADMIN
+}
+
+enum TypeSeat {
+  ECONOMY
+  BUSINESS
+  FIRST
+}
+
+enum StatusTicket{
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model User{
+  id String @id @default(cuid())
+  name String
+  email String @unique
+  password String
+  passport String?
+  role RoleUser
+  tickets Ticket[]
+}
+
+model AirPlane{
+  id String @id @default(cuid())
+  code String @default("ABC-123")
+  name String
+  image String
+  flaght Flight[]
+}
+
+model Flight{
+  id String @id @default(cuid())
+  plandId String
+  plane AirPlane @relation(fields: [plandId], references: [id])
+  departureDate DateTime
+  departureCity String
+  departureCityCode String
+  arrivalDate DateTime
+  destinatinCity String
+  destinatinCityCode String
+  price Int
+  seats FlightSeat[]
+  tickets Ticket[]
+}
+
+model FlightSeat {
+  id String @id @default(cuid())
+  flightId String
+  flight Flight @relation(fields: [flightId], references: [id])
+  seatNumber String
+  isBooked Boolean @default(false)
+  type TypeSeat
+  ticket Ticket?
+}
+
+model Ticket{
+  id String @id @default(cuid())
+  code String @unique
+  flightId String
+  flight Flight @relation(fields: [flightId], references: [id])
+  customerId String
+  customer User @relation(fields: [customerId], references: [id])
+  seatId String @unique
+  seat FlightSeat @relation(fields: [seatId], references: [id])
+  bookingDate DateTime
+  price Int
+  status StatusTicket
+  tokenMidtrans String?
+}
